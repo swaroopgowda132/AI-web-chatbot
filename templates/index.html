@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>AI Chatbot</title>
+
+<link rel="stylesheet" href="/static/style.css">
+
+</head>
+
+<body>
+
+<h2>My AI Chatbot</h2>
+
+<input id="msg" placeholder="Ask something">
+
+<button id="sendBtn">Send</button>
+<button onclick="clearChat()">Clear</button>
+<div id="chat"></div>
+
+
+<script>
+
+async function clearChat(){
+
+    let chat = document.getElementById("chat");
+
+    chat.innerHTML = "";
+
+
+    await fetch("/clear", {
+        method: "POST"
+    });
+
+}
+
+const button = document.getElementById("sendBtn");
+
+button.addEventListener("click", send);
+
+
+async function send(){
+
+    let input = document.getElementById("msg");
+    let chat = document.getElementById("chat");
+
+    let message = input.value;
+
+
+    if(message.trim() === ""){
+        return;
+    }
+
+
+    chat.innerHTML += 
+    "<p><b>You:</b> " + message + "</p>";
+
+
+    input.value = "";
+
+
+    try {
+    chat.innerHTML += 
+`<div class="ai" id="loading">
+AI is typing...
+</div>`;
+
+        let response = await fetch("/chat", {
+
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                message: message
+            })
+
+        });
+
+
+        let data = await response.json();
+document.getElementById("loading").remove();
+
+        chat.innerHTML += 
+        "<p><b>AI:</b> " + data.reply + "</p>";
+
+
+    }
+    catch(error){
+
+        chat.innerHTML += 
+        "<p><b>Error:</b> " + error + "</p>";
+
+    }
+
+}
+
+</script>
+
+
+</body>
+
+</html>
