@@ -3,6 +3,8 @@
 <head>
 <title>AI Chatbot</title>
 
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
 <style>
@@ -33,6 +35,7 @@ body {
     border-right: 1px solid rgba(255,255,255,0.08);
     display: flex;
     flex-direction: column;
+    transition: 0.3s;
 }
 
 .sidebar-header {
@@ -50,11 +53,6 @@ body {
     border-radius: 10px;
     cursor: pointer;
     text-align: center;
-    transition: 0.2s;
-}
-
-.new-chat:hover {
-    background: #1f2937;
 }
 
 .chat-history {
@@ -70,14 +68,13 @@ body {
     color: #cbd5e1;
     cursor: pointer;
     margin-bottom: 6px;
-    transition: 0.2s;
 }
 
 .chat-item:hover {
     background: #1f2937;
 }
 
-/* Main area */
+/* Main */
 .main {
     flex: 1;
     display: flex;
@@ -91,9 +88,22 @@ body {
     border-bottom: 1px solid rgba(255,255,255,0.08);
     font-weight: 600;
     background: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
-/* Chat area */
+.menu-btn {
+    display: none;
+    background: #111827;
+    border: 1px solid rgba(255,255,255,0.1);
+    color: white;
+    padding: 6px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* Chat */
 #chat {
     flex: 1;
     padding: 20px;
@@ -103,7 +113,6 @@ body {
     gap: 10px;
 }
 
-/* Messages */
 p {
     margin: 0;
     padding: 10px 14px;
@@ -129,7 +138,7 @@ p {
     border-bottom-left-radius: 4px;
 }
 
-/* Input area */
+/* Input */
 .input-area {
     display: flex;
     padding: 14px;
@@ -154,14 +163,11 @@ input:focus {
     border-color: #3b82f6;
 }
 
-/* Buttons */
 button {
     padding: 10px 14px;
     border: none;
     border-radius: 10px;
     cursor: pointer;
-    transition: 0.2s;
-    font-weight: 500;
 }
 
 .send {
@@ -174,21 +180,57 @@ button {
     color: white;
 }
 
-button:hover {
-    transform: scale(1.04);
-}
-
-/* Typing */
-.typing {
-    background: #1f2937;
-    color: #9ca3af;
-}
-
 /* Animation */
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(4px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+/* MOBILE */
+@media (max-width: 768px) {
+
+    body {
+        flex-direction: column;
+    }
+
+    .app {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        position: fixed;
+        left: -260px;
+        top: 0;
+        height: 100%;
+        z-index: 1000;
+    }
+
+    .sidebar.open {
+        left: 0;
+    }
+
+    .menu-btn {
+        display: inline-block;
+    }
+
+    #chat {
+        padding: 12px;
+    }
+
+    p {
+        max-width: 85%;
+        font-size: 14px;
+    }
+
+    .input-area {
+        padding: 10px;
+    }
+
+    input {
+        font-size: 14px;
+    }
+}
+
 </style>
 </head>
 
@@ -197,7 +239,7 @@ button:hover {
 <div class="app">
 
     <!-- Sidebar -->
-    <div class="sidebar">
+    <div class="sidebar" id="sidebar">
         <div class="sidebar-header">Chat History</div>
         <div class="new-chat">+ New Chat</div>
         <div class="chat-history">
@@ -209,7 +251,10 @@ button:hover {
     <!-- Main -->
     <div class="main">
 
-        <div class="topbar">AI Assistant</div>
+        <div class="topbar">
+            <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+            AI Assistant
+        </div>
 
         <div id="chat"></div>
 
@@ -224,6 +269,10 @@ button:hover {
 </div>
 
 <script>
+
+function toggleSidebar(){
+    document.getElementById("sidebar").classList.toggle("open");
+}
 
 async function clearChat(){
     document.getElementById("chat").innerHTML = "";
@@ -246,8 +295,7 @@ async function send(){
     chat.innerHTML += `<p class="user"><b>You:</b> ${message}</p>`;
     input.value = "";
 
-    chat.innerHTML += `<p class="ai typing" id="loading">AI is typing...</p>`;
-
+    chat.innerHTML += `<p class="ai"><b>AI:</b> ${"AI is typing..."}</p>`;
     chat.scrollTop = chat.scrollHeight;
 
     try {
@@ -259,15 +307,17 @@ async function send(){
 
         let data = await response.json();
 
-        document.getElementById("loading").remove();
+        // remove last typing
+        let msgs = chat.querySelectorAll(".ai");
+        msgs[msgs.length - 1].remove();
 
         chat.innerHTML += `<p class="ai"><b>AI:</b> ${data.reply.replace(/\n/g, "<br>")}</p>`;
-
         chat.scrollTop = chat.scrollHeight;
 
     } catch(error) {
 
-        document.getElementById("loading").remove();
+        let msgs = chat.querySelectorAll(".ai");
+        msgs[msgs.length - 1].remove();
 
         chat.innerHTML += `<p class="ai"><b>Error:</b> ${error.toString().replace(/\n/g, "<br>")}</p>`;
     }
